@@ -4,9 +4,20 @@ import sys
 import os
 import time
 
+class Product(object):
+	def __init__(self, productCode = 0, productName = '', productValue = 0, productAvailability = 0):
+		self.code = productCode
+		self.name = productName
+		self.value = productValue
+		self.availability = productAvailability
+
+products = {}
+
+# SERVER HOST AND SERVER
 HOST = ''
 PORT = 50001
 
+# OTHER SERVERS AND HOSTS
 server2Host = '127.0.0.1'
 server2Port = 50002
 server3Host = '127.0.0.1'
@@ -16,9 +27,9 @@ server4Port = 50004
 
 serverValue = 1
 server1Values = [1, 0, 0, 0]
-server2Values = [1, 2, 6, 4]
-server3Values = [1, 2, 3, 4]
-server4Values = [1, 2, 7, 4]
+server2Values = [0, 0, 0, 0]
+server3Values = [0, 0, 0, 0]
+server4Values = [0, 0, 0, 0]
 
 serversQuantity = 4
 testServers = {}
@@ -185,6 +196,37 @@ def connected(connection, client):
     else:
         connection.close()
     thread.exit()
+
+def menu():
+    print '----------------------------------------'
+    print '---- 1 -> Update Value of a Product ----'
+    print '---- 2 -> Get Product Situation     ----'
+    print '---- 3 -> Create new Product        ----'
+    print '---- 4 -> List Local Products       ----'
+    print '---- 5 -> List Global Products      ----'
+    print '----------------------------------------'
+
+def feedLocalStructure():
+    for i in xrange(100):
+        products.update({i: Product(i, "Product "+i, 5*i, 1)})
+
+def listLocalProducts():
+    print '| ID | Name | Price | Stock |'
+    for product in products:
+        print '| ',
+        print product.code,
+        print ' | ',
+        print product.name,
+        print ' | ',
+        print product.price,
+        print ' | ',
+        print product.availability,
+        print ' |'
+
+
+############################################################################
+############################# Server 1 MAIN ################################
+############################################################################
 
 # Create a socket that use IPV4 and TCP protocol
 # Bind the port for this process conections
