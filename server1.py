@@ -183,19 +183,22 @@ def sendNumber(connection):
 
 def connected(connection, client):
     ###Function that starts a new thread for the connection
-    msg = connection.recv(1024)
-    if (msg == "GETNUMBER"):
-        print("Connection started with " + str(client))
-        getNumber(connection)
-    elif (msg == "SENDSERVERVALUES"):
-        print("Connection started to send server values")
-        sendServerValues(connection)
-    elif (msg == "SENDNUMBER"):
-        print("Connection started with " + str(client))
-        sendNumber(connection)
-    else:
-        connection.close()
-    thread.exit()
+	while(true):
+		msg = connection.recv(1024)
+    	if (msg == "GETNUMBER"):
+        	print("Connection started with " + str(client))
+        	getNumber(connection)
+    	elif (msg == "SENDSERVERVALUES"):
+        	print("Connection started to send server values")
+        	sendServerValues(connection)
+    	elif (msg == "SENDNUMBER"):
+        	print("Connection started with " + str(client))
+        	sendNumber(connection)
+    	else:
+        	connection.close()
+			break
+
+	thread.exit()
 
 def menu():
     print '----------------------------------------'
@@ -211,6 +214,7 @@ def feedLocalStructure():
         products.update({i: Product(i, "Product "+i, 5*i, 1)})
 
 def listLocalProducts():
+	print '_____________________________'
     print '| ID | Name | Price | Stock |'
     for product in products:
         print '| ',
@@ -269,6 +273,11 @@ except socket.error as sem:
     print("ERROR: Couldn't connect.")
     print(sem)
     sys.exit()
+
+menu()
+# get values
+# present options
+# do whatever the fuck it need to work
 
 server2Socket.send("GETNUMBER")
 returnMessage = server2Socket.recv(1024)

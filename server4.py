@@ -101,19 +101,49 @@ def sendNumber(connection):
 
 def connected(connection, client):
     ###Function that starts a new thread for the connection
-    msg = connection.recv(1024)
-    if (msg == "GETNUMBER"):
-        print("Connection started with " + str(client))
-        getNumber(connection)
-    elif (msg == "SENDSERVERVALUES"):
-        print("Connection started to send server values")
-        sendServerValues(connection)
-    elif (msg == "SENDNUMBER"):
-        print("Connection started with " + str(client))
-        sendNumber(connection)
-    else:
-        connection.close()
+    while(true):
+	    msg = connection.recv(1024)
+        if (msg == "GETNUMBER"):
+            print("Connection started with " + str(client))
+            getNumber(connection)
+        elif (msg == "SENDSERVERVALUES"):
+            print("Connection started to send server values")
+            sendServerValues(connection)
+        elif (msg == "SENDNUMBER"):
+            print("Connection started with " + str(client))
+            sendNumber(connection)
+        else:
+            connection.close()
+            break
+
     thread.exit()
+
+def menu():
+    print '----------------------------------------'
+    print '---- 1 -> Update Value of a Product ----'
+    print '---- 2 -> Get Product Situation     ----'
+    print '---- 3 -> Create new Product        ----'
+    print '---- 4 -> List Local Products       ----'
+    print '---- 5 -> List Global Products      ----'
+    print '----------------------------------------'
+
+def feedLocalStructure():
+    for i in xrange(100):
+        products.update({i: Product(i, "Product "+i, 5*i, 1)})
+
+def listLocalProducts():
+	print '_____________________________'
+    print '| ID | Name | Price | Stock |'
+    for product in products:
+        print '| ',
+        print product.code,
+        print ' | ',
+        print product.name,
+        print ' | ',
+        print product.price,
+        print ' | ',
+        print product.availability,
+        print ' |'
 
 # Create a socket that use IPV4 and TCP protocol
 # Bind the port for this process conections
