@@ -3,6 +3,7 @@ import thread
 import sys
 import os
 import time
+import json
 
 class Product(object):
 	def __init__(self, productCode = 0, productName = '', productValue = 0, productAvailability = 0):
@@ -12,6 +13,10 @@ class Product(object):
 		self.availability = productAvailability
 
 products = {}
+idCount = 100
+server2Products = {}
+server3Products = {}
+server4Products = {}
 
 # SERVER HOST AND SERVER
 HOST = ''
@@ -24,12 +29,6 @@ server3Host = '127.0.0.1'
 server3Port = 50003
 server4Host = '127.0.0.1'
 server4Port = 50004
-
-serverValue = 1
-server1Values = [1, 0, 0, 0]
-server2Values = [0, 0, 0, 0]
-server3Values = [0, 0, 0, 0]
-server4Values = [0, 0, 0, 0]
 
 serversQuantity = 4
 testServers = {}
@@ -206,8 +205,24 @@ def menu():
     print '---- 2 -> Get Product Situation     ----'
     print '---- 3 -> Create new Product        ----'
     print '---- 4 -> List Local Products       ----'
-    print '---- 5 -> List Global Products      ----'
+    print '---- 5 -> Search Global Products    ----'
+	print '---- 6 -> Exit Program              ----'
     print '----------------------------------------'
+
+def updateProductValue(id):
+	newValue = int(raw_input('Type the new value only in numbers:')
+	products[id].price = newValue
+	data_string = json.dumps(data) #data serialized
+	data_loaded = json.loads(data) #data loaded
+
+def createProduct():
+	global idCount
+	idCount += 1
+	productName = str(raw_input('Please inform the name of the new Product:')
+	productPrice = int(raw_input('Please inform the price of the new Product:')
+	productAvailability = int(raw_input('Please inform the stock quantity of the new Product:')
+
+	products.update({idCount: Product(idCount, productName, productPrice, productAvailability)})
 
 def feedLocalStructure():
     for i in xrange(100):
@@ -226,6 +241,73 @@ def listLocalProducts():
         print ' | ',
         print product.availability,
         print ' |'
+
+def listGlobalProducts(serverId):
+	print '_____________________________'
+    print '| ID | Name | Price | Stock |'
+    for product in products:
+        print '| ',
+        print product.code,
+        print ' | ',
+        print product.name,
+        print ' | ',
+        print product.price,
+        print ' | ',
+        print product.availability,
+        print ' |'
+
+def main():
+	while True:
+		menu()
+		option = int(raw_input('Option:')
+		if option < 1 or option > 6:
+			print '\n\n\n Error on selecting option, try again:\n\n'
+			continue
+
+		if option == 1:
+			print '\n\n Let\'s create a new Product:'
+			createProduct()
+
+		if option == 2:
+			print '\n\n'
+			id = int(raw_input('Please inform the product id to be changed:'))
+
+		if option == 3:
+			print '\n\n'
+			id = int(raw_input('Please inform the product id to be changed:'))
+
+		if option == 4:
+			print '\n\n'
+			listLocalProducts()
+
+		if option == 5:
+			print '\n\n'
+			serverId = int(raw_input('Please inform from which server do you want to receive the products:'))
+			listLocalProducts(serverId)
+
+		if option == 6:
+			print 'Exiting from this server'
+			break
+
+	# do whatever the fuck it need to work
+
+	server2Socket.send("GETNUMBER")
+	returnMessage = server2Socket.recv(1024)
+	if (returnMessage == "SENDNUMBER"):
+	    print("Connection started with 2")
+	    sendNumber(server2Socket)
+
+	server3Socket.send("GETNUMBER")
+	returnMessage = server3Socket.recv(1024)
+	if (returnMessage == "SENDNUMBER"):
+	    print("Connection started with 3")
+	    sendNumber(server3Socket)
+
+	server4Socket.send("GETNUMBER")
+	returnMessage = server4Socket.recv(1024)
+	if (returnMessage == "SENDNUMBER"):
+	    print("Connection started with 4")
+	    sendNumber(server4Socket)
 
 
 ############################################################################
@@ -274,28 +356,8 @@ except socket.error as sem:
     print(sem)
     sys.exit()
 
-menu()
-# get values
-# present options
-# do whatever the fuck it need to work
-
-server2Socket.send("GETNUMBER")
-returnMessage = server2Socket.recv(1024)
-if (returnMessage == "SENDNUMBER"):
-    print("Connection started with 2")
-    sendNumber(server2Socket)
-
-server3Socket.send("GETNUMBER")
-returnMessage = server3Socket.recv(1024)
-if (returnMessage == "SENDNUMBER"):
-    print("Connection started with 3")
-    sendNumber(server3Socket)
-
-server4Socket.send("GETNUMBER")
-returnMessage = server4Socket.recv(1024)
-if (returnMessage == "SENDNUMBER"):
-    print("Connection started with 4")
-    sendNumber(server4Socket)
+feedLocalStructure()
+thread.start_new_thread(main, ())
 
 try:
     while True:
