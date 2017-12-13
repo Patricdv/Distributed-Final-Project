@@ -5,16 +5,9 @@ import os
 import time
 import json
 
-class Product(object):
-	def __init__(self, productCode = 0, productName = '', productValue = 0, productAvailability = 0):
-		self.code = productCode
-		self.name = productName
-		self.value = productValue
-		self.availability = productAvailability
-
 products = {}
 idCount = 100
-server2Products = {}
+server1Products = {}
 server3Products = {}
 server4Products = {}
 
@@ -34,57 +27,58 @@ server4Port = 50004
 serversQuantity = 4
 testServers = {}
 
+def Product(productCode = 0, productName = '', productValue = 0, productAvailability = 0):
+	return {'code': productCode, 'name': productName, 'value': productValue, 'availability': productAvailability}
+
 def getNewProduct(connection):
-    try:
-        connection.send("SENDNEWPRODUCT");
-        serverNumber = connection.recv(1)
-        print("getting information from server" + serverNumber)
-        serverNumber = int(serverNumber)
+	try:
+		connection.send("SENDNEWPRODUCT");
+		serverNumber = connection.recv(8)
+		print("getting information from server" + serverNumber)
+		serverNumber = int(serverNumber)
 
-        print '\nProduct:',
+		print '\nProduct:',
+		information = connection.recv(1024)
+		data_load = json.loads(json.JSONEncode(information))
+		print data_load
 
-        information = connection.recv(1024)
-        data_load = json.load(information)
-        print data_load
+		server2Values[serverNumber-1] = information
+		if serverNumber == 1:
+			time.sleep(5)
 
-        server2Values[serverNumber-1] = information
+			server1Socket.send("GETNUMBER")
+			returnMessage = server1Socket.recv(1024)
+			if (returnMessage == "SENDNUMBER"):
+				print("Connection started with 1")
+				sendNumber(server1Socket)
 
-        if serverNumber == 1:
-            time.sleep(5)
+			server3Socket.send("GETNUMBER")
+			returnMessage = server3Socket.recv(1024)
+			if (returnMessage == "SENDNUMBER"):
+				print("Connection started with 3")
+				sendNumber(server3Socket)
 
-            server1Socket.send("GETNUMBER")
-            returnMessage = server1Socket.recv(1024)
-            if (returnMessage == "SENDNUMBER"):
-                print("Connection started with 1")
-                sendNumber(server1Socket)
+			server4Socket.send("GETNUMBER")
+			returnMessage = server4Socket.recv(1024)
+			if (returnMessage == "SENDNUMBER"):
+				print("Connection started with 4")
+				sendNumber(server4Socket)
 
-            server3Socket.send("GETNUMBER")
-            returnMessage = server3Socket.recv(1024)
-            if (returnMessage == "SENDNUMBER"):
-                print("Connection started with 3")
-                sendNumber(server3Socket)
+			time.sleep(30)
+			msg = connection.recv(1024)
+			if (msg == "SENDSERVERVALUES"):
+				print("Connection started to send server values")
+				sendServerValues(connection)
 
-            server4Socket.send("GETNUMBER")
-            returnMessage = server4Socket.recv(1024)
-            if (returnMessage == "SENDNUMBER"):
-                print("Connection started with 4")
-                sendNumber(server4Socket)
+		if serverNumber == 4:
+			time.sleep(5)
+			print server2Values
 
-            time.sleep(30)
-            msg = connection.recv(1024)
-            if (msg == "SENDSERVERVALUES"):
-                print("Connection started to send server values")
-                sendServerValues(connection)
-
-        if serverNumber == 4:
-            time.sleep(5)
-            print server2Values
-
-    except Exception as msg:
-        connection.send("ERROR")
-        #File Error.
-        print("Error message: " + str(msg))
-        return
+	except Exception as msg:
+		connection.send("ERROR")
+		#File Error.
+		print("Error message: " + str(msg))
+		return
 
 def getNumber(connection):
     try:
@@ -165,26 +159,26 @@ def sendNumber(connection):
     connection.send(str(serverValue))
 
 def connected(connection, client):
-    ###  Function that starts a new thread for the connection
-    while(true):
+	###  Function that starts a new thread for the connection
+	while True:
 		msg = connection.recv(1024)
-        if (msg == "GETNUMBER"):
-            print("Connection started with " + str(client))
-            getNumber(connection)
+		if (msg == "GETNUMBER"):
+			print("Connection started with " + str(client))
+			getNumber(connection)
+		elif (msg == "GETNEWPRODUCT"):
+			print("Connection started with " + str(client))
+			getNewProduct(connection)
+		elif (msg == "SENDSERVERVALUES"):
+			print("Connection started to send server values")
+			sendServerValues(connection)
+		elif (msg == "SENDNUMBER"):
+			print("Connection started with " + str(client))
+			sendNumber(connection)
+		else:
+			connection.close()
+			break
 
-        elif (msg == "GETNEWPRODUCT"):
-            print("Connection started with " + str(client))
-            getNewProduct(connection)
-        elif (msg == "SENDSERVERVALUES"):
-            print("Connection started to send server values")
-            sendServerValues(connection)
-        elif (msg == "SENDNUMBER"):
-            print("Connection started with " + str(client))
-            sendNumber(connection)
-        else:
-            connection.close()
-            break
-    thread.exit()
+	thread.exit()
 
 def menu():
     print '----------------------------------------'
@@ -196,23 +190,72 @@ def menu():
     print '----------------------------------------'
 
 def feedLocalStructure():
-    for i in xrange(100):
-        products.update({i: Product(i, "Product "+i, 5*i, 1)})
+	for i in xrange(100):
+		products.update({i: Product(i, "Product "+str(i), 5*i, 1)})
+		server1Products.update({i: Product(i, "Product "+str(i), 5*i, 1)})
+		server3Products.update({i: Product(i, "Product "+str(i), 5*i, 1)})
+		server4Products.update({i: Product(i, "Product "+str(i), 5*i, 1)})
 
 def listLocalProducts():
 	print '_____________________________'
-    print '| ID | Name | Price | Stock |'
-    for product in products:
-        print '| ',
-        print product.code,
-        print ' | ',
-        print product.name,
-        print ' | ',
-        print product.price,
-        print ' | ',
-        print product.availability,
-        print ' |'
+	print '| ID | Name | Price | Stock |'
+	for product in products:
+		print '| ',
+		print products[product]['code'],
+		print ' | ',
+		print products[product]['name'],
+		print ' | ',
+		print products[product]['value'],
+		print ' | ',
+		print products[product]['availability'],
+		print ' |'
 
+def listGlobalProducts(serverId):
+	print '_____________________________'
+	print '| ID | Name | Price | Stock |'
+	for product in products:
+		print '| ',
+		print products[product]['code'],
+		print ' | ',
+		print products[product]['name'],
+		print ' | ',
+		print products[product]['value'],
+		print ' | ',
+		print products[product]['availability'],
+		print ' |'
+
+	for product in server1Products:
+		print '| ',
+		print products[product]['code'],
+		print ' | ',
+		print products[product]['name'],
+		print ' | ',
+		print products[product]['value'],
+		print ' | ',
+		print products[product]['availability'],
+		print ' |'
+
+	for product in server3Products:
+		print '| ',
+		print products[product]['code'],
+		print ' | ',
+		print products[product]['name'],
+		print ' | ',
+		print products[product]['value'],
+		print ' | ',
+		print products[product]['availability'],
+		print ' |'
+
+	for product in server4Products:
+		print '| ',
+		print products[product]['code'],
+		print ' | ',
+		print products[product]['name'],
+		print ' | ',
+		print products[product]['value'],
+		print ' | ',
+		print products[product]['availability'],
+		print ' |'
 
 
 # Create a socket that use IPV4 and TCP protocol

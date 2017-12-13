@@ -5,13 +5,6 @@ import os
 import time
 import json
 
-class Product(object):
-	def __init__(self, productCode = 0, productName = '', productValue = 0, productAvailability = 0):
-		self.code = productCode
-		self.name = productName
-		self.value = productValue
-		self.availability = productAvailability
-
 products = {}
 idCount = 100
 server2Products = {}
@@ -33,6 +26,9 @@ server4Port = 50004
 
 serversQuantity = 4
 testServers = {}
+
+def Product(productCode = 0, productName = '', productValue = 0, productAvailability = 0):
+	return {'code': productCode, 'name': productName, 'value': productValue, 'availability': productAvailability}
 
 def doByzantineAgreement():
     print "\nStarting Byzantine Agreement:"
@@ -174,15 +170,18 @@ def sendServerValues(connection):
         print("Error message: " + str(msg))
         return
 
-def sendNewProduct(connection, newProduct = {}):
+def sendNewProduct(connection, newProduct):
 	data_string = json.dumps(newProduct) #data serialized
+	print type(data_string)
+	data_load = json.loads(data_string) #data serialized
+	print data_load
 	print "Sending server number"
 	connection.send(str(serverValue))
 
 	time.sleep(1)
 
 	print "Sending server new product"
-	connection.sendAll(data_string)
+	connection.send(data_string)
 
 def sendNumber(connection):
     print "Sending server number"
@@ -193,18 +192,18 @@ def sendNumber(connection):
 
 def connected(connection, client):
     ###Function that starts a new thread for the connection
-	while(true):
+	while True:
 		msg = connection.recv(1024)
-    	if (msg == "GETNUMBER"):
-        	print("Connection started with " + str(client))
-        	getNumber(connection)
-    	elif (msg == "SENDSERVERVALUES"):
-        	print("Connection started to send server values")
-        	sendServerValues(connection)
-    	elif (msg == "SENDNUMBER"):
-        	print("Connection started with " + str(client))
-        	sendNumber(connection)
-    	else:
+		if (msg == "GETNUMBER"):
+			print("Connection started with " + str(client))
+			getNumber(connection)
+		elif (msg == "SENDSERVERVALUES"):
+			print("Connection started to send server values")
+			sendServerValues(connection)
+		elif (msg == "SENDNUMBER"):
+			print("Connection started with " + str(client))
+			sendNumber(connection)
+		else:
 			connection.close()
 			break
 
@@ -221,85 +220,121 @@ def menu():
 	print '----------------------------------------'
 
 def updateProductValue(productId):
-	newValue = int(raw_input('Type the new value only in numbers:')
+	newValue = int(raw_input('Type the new value only in numbers:'))
 	products[productId].value = newValue
 
 def showProduct(productId):
 	print '_____________________________'
-    print '| ID | Name | Price | Stock |'
-    print '| ',
-	print products[productId].code,
+	print '| ID | Name | Price | Stock |'
+	print '| ',
+	print products[productId]['code'],
 	print ' | ',
-	print products[productId].name,
+	print products[productId]['name'],
 	print ' | ',
-	print products[productId].price,
+	print products[productId]['value'],
 	print ' | ',
-	print products[productId].availability,
+	print products[productId]['availability'],
 	print ' |'
 
 def createProduct():
 	global idCount
 	idCount += 1
-	productName = str(raw_input('Please inform the name of the new Product:')
-	productPrice = int(raw_input('Please inform the price of the new Product:')
-	productAvailability = int(raw_input('Please inform the stock quantity of the new Product:')
+	productNewName = str(raw_input('Please inform the name of the new Product:'))
+	productNewPrice = int(raw_input('Please inform the price of the new Product:'))
+	productNewAvailability = int(raw_input('Please inform the stock quantity of the new Product:'))
 
-	products.update({idCount: Product(idCount, productName, productPrice, productAvailability)})
+	products.update({idCount: Product(idCount, productNewName, productNewPrice, productNewAvailability)})
 
 	server2Socket.send("GETNEWPRODUCT")
 	returnMessage = server2Socket.recv(1024)
 	if (returnMessage == "SENDNEWPRODUCT"):
 	    print("Connection started with 2")
-	    sendNewProduct(server2Socket, {idCount: Product(idCount, productName, productPrice, productAvailability)})
+	    sendNewProduct(server2Socket, {idCount: Product(idCount, productNewName, productNewPrice, productNewAvailability)})
 
 	server3Socket.send("GETNEWPRODUCT")
 	returnMessage = server3Socket.recv(1024)
 	if (returnMessage == "SENDNEWPRODUCT"):
 	    print("Connection started with 3")
-	    sendNewProduct(server3Socket, {idCount: Product(idCount, productName, productPrice, productAvailability)})
+	    sendNewProduct(server3Socket, {idCount: Product(idCount, productNewName, productNewPrice, productNewAvailability)})
 
 	server4Socket.send("GETNEWPRODUCT")
 	returnMessage = server4Socket.recv(1024)
 	if (returnMessage == "SENDNEWPRODUCT"):
 	    print("Connection started with 4")
-	    sendNewProduct(server4Socket, {idCount: Product(idCount, productName, productPrice, productAvailability)})
+	    sendNewProduct(server4Socket, {idCount: Product(idCount, productNewName, productNewPrice, productNewAvailability)})
 
 def feedLocalStructure():
-    for i in xrange(100):
-        products.update({i: Product(i, "Product "+i, 5*i, 1)})
+	for i in xrange(100):
+		products.update({i: Product(i, "Product "+str(i), 5*i, 1)})
+		server2Products.update({i: Product(i, "Product "+str(i), 5*i, 1)})
+		server3Products.update({i: Product(i, "Product "+str(i), 5*i, 1)})
+		server4Products.update({i: Product(i, "Product "+str(i), 5*i, 1)})
 
 def listLocalProducts():
 	print '_____________________________'
-    print '| ID | Name | Price | Stock |'
-    for product in products:
-        print '| ',
-        print products[product].code,
-        print ' | ',
-        print products[product].name,
-        print ' | ',
-        print products[product].price,
-        print ' | ',
-        print products[product].availability,
-        print ' |'
+	print '| ID | Name | Price | Stock |'
+	for product in products:
+		print '| ',
+		print products[product]['code'],
+		print ' | ',
+		print products[product]['name'],
+		print ' | ',
+		print products[product]['value'],
+		print ' | ',
+		print products[product]['availability'],
+		print ' |'
 
 def listGlobalProducts(serverId):
 	print '_____________________________'
-    print '| ID | Name | Price | Stock |'
-    for product in products:
-        print '| ',
-        print product.code,
-        print ' | ',
-        print product.name,
-        print ' | ',
-        print product.price,
-        print ' | ',
-        print product.availability,
-        print ' |'
+	print '| ID | Name | Price | Stock |'
+	for product in products:
+		print '| ',
+		print products[product]['code'],
+		print ' | ',
+		print products[product]['name'],
+		print ' | ',
+		print products[product]['value'],
+		print ' | ',
+		print products[product]['availability'],
+		print ' |'
+
+	for product in server2Products:
+		print '| ',
+		print products[product]['code'],
+		print ' | ',
+		print products[product]['name'],
+		print ' | ',
+		print products[product]['value'],
+		print ' | ',
+		print products[product]['availability'],
+		print ' |'
+
+	for product in server3Products:
+		print '| ',
+		print products[product]['code'],
+		print ' | ',
+		print products[product]['name'],
+		print ' | ',
+		print products[product]['value'],
+		print ' | ',
+		print products[product]['availability'],
+		print ' |'
+
+	for product in server4Products:
+		print '| ',
+		print products[product]['code'],
+		print ' | ',
+		print products[product]['name'],
+		print ' | ',
+		print products[product]['value'],
+		print ' | ',
+		print products[product]['availability'],
+		print ' |'
 
 def main():
 	while True:
 		menu()
-		option = int(raw_input('Option:')
+		option = int(raw_input('Option:'))
 		if option < 1 or option > 6:
 			print '\n\n\n Error on selecting option, try again:\n\n'
 			continue
