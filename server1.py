@@ -21,6 +21,7 @@ server4Products = {}
 # SERVER HOST AND SERVER
 HOST = ''
 PORT = 50001
+serverValue = 1
 
 # OTHER SERVERS AND HOSTS
 server2Host = '127.0.0.1'
@@ -173,6 +174,16 @@ def sendServerValues(connection):
         print("Error message: " + str(msg))
         return
 
+def sendNewProduct(connection, newProduct = {}):
+	data_string = json.dumps(newProduct) #data serialized
+	print "Sending server number"
+	connection.send(str(serverValue))
+
+	time.sleep(1)
+
+	print "Sending server new product"
+	connection.sendAll(data_string)
+
 def sendNumber(connection):
     print "Sending server number"
     connection.send(str(serverValue))
@@ -194,26 +205,37 @@ def connected(connection, client):
         	print("Connection started with " + str(client))
         	sendNumber(connection)
     	else:
-        	connection.close()
+			connection.close()
 			break
 
 	thread.exit()
 
 def menu():
-    print '----------------------------------------'
-    print '---- 1 -> Update Value of a Product ----'
-    print '---- 2 -> Get Product Situation     ----'
-    print '---- 3 -> Create new Product        ----'
-    print '---- 4 -> List Local Products       ----'
-    print '---- 5 -> Search Global Products    ----'
+	print '----------------------------------------'
+	print '---- 1 -> Update Value of a Product ----'
+	print '---- 2 -> Get Product Situation     ----'
+	print '---- 3 -> Create new Product        ----'
+	print '---- 4 -> List Local Products       ----'
+	print '---- 5 -> Search Global Products    ----'
 	print '---- 6 -> Exit Program              ----'
-    print '----------------------------------------'
+	print '----------------------------------------'
 
-def updateProductValue(id):
+def updateProductValue(productId):
 	newValue = int(raw_input('Type the new value only in numbers:')
-	products[id].price = newValue
-	data_string = json.dumps(data) #data serialized
-	data_loaded = json.loads(data) #data loaded
+	products[productId].value = newValue
+
+def showProduct(productId):
+	print '_____________________________'
+    print '| ID | Name | Price | Stock |'
+    print '| ',
+	print products[productId].code,
+	print ' | ',
+	print products[productId].name,
+	print ' | ',
+	print products[productId].price,
+	print ' | ',
+	print products[productId].availability,
+	print ' |'
 
 def createProduct():
 	global idCount
@@ -224,6 +246,24 @@ def createProduct():
 
 	products.update({idCount: Product(idCount, productName, productPrice, productAvailability)})
 
+	server2Socket.send("GETNEWPRODUCT")
+	returnMessage = server2Socket.recv(1024)
+	if (returnMessage == "SENDNEWPRODUCT"):
+	    print("Connection started with 2")
+	    sendNewProduct(server2Socket, {idCount: Product(idCount, productName, productPrice, productAvailability)})
+
+	server3Socket.send("GETNEWPRODUCT")
+	returnMessage = server3Socket.recv(1024)
+	if (returnMessage == "SENDNEWPRODUCT"):
+	    print("Connection started with 3")
+	    sendNewProduct(server3Socket, {idCount: Product(idCount, productName, productPrice, productAvailability)})
+
+	server4Socket.send("GETNEWPRODUCT")
+	returnMessage = server4Socket.recv(1024)
+	if (returnMessage == "SENDNEWPRODUCT"):
+	    print("Connection started with 4")
+	    sendNewProduct(server4Socket, {idCount: Product(idCount, productName, productPrice, productAvailability)})
+
 def feedLocalStructure():
     for i in xrange(100):
         products.update({i: Product(i, "Product "+i, 5*i, 1)})
@@ -233,13 +273,13 @@ def listLocalProducts():
     print '| ID | Name | Price | Stock |'
     for product in products:
         print '| ',
-        print product.code,
+        print products[product].code,
         print ' | ',
-        print product.name,
+        print products[product].name,
         print ' | ',
-        print product.price,
+        print products[product].price,
         print ' | ',
-        print product.availability,
+        print products[product].availability,
         print ' |'
 
 def listGlobalProducts(serverId):
@@ -266,15 +306,17 @@ def main():
 
 		if option == 1:
 			print '\n\n Let\'s create a new Product:'
-			createProduct()
+			productId = int(raw_input('Please inform the product id to be changed:'))
+			updateProductValue(productId)
 
 		if option == 2:
 			print '\n\n'
-			id = int(raw_input('Please inform the product id to be changed:'))
+			productId = int(raw_input('Please inform the product id to be viewed:'))
+			showProduct(productId)
 
 		if option == 3:
-			print '\n\n'
-			id = int(raw_input('Please inform the product id to be changed:'))
+			print '\n\n Let\'s create a new Product:'
+			createProduct()
 
 		if option == 4:
 			print '\n\n'
@@ -288,27 +330,6 @@ def main():
 		if option == 6:
 			print 'Exiting from this server'
 			break
-
-	# do whatever the fuck it need to work
-
-	server2Socket.send("GETNUMBER")
-	returnMessage = server2Socket.recv(1024)
-	if (returnMessage == "SENDNUMBER"):
-	    print("Connection started with 2")
-	    sendNumber(server2Socket)
-
-	server3Socket.send("GETNUMBER")
-	returnMessage = server3Socket.recv(1024)
-	if (returnMessage == "SENDNUMBER"):
-	    print("Connection started with 3")
-	    sendNumber(server3Socket)
-
-	server4Socket.send("GETNUMBER")
-	returnMessage = server4Socket.recv(1024)
-	if (returnMessage == "SENDNUMBER"):
-	    print("Connection started with 4")
-	    sendNumber(server4Socket)
-
 
 ############################################################################
 ############################# Server 1 MAIN ################################
