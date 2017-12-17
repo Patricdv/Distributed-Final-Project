@@ -3,9 +3,8 @@ import thread
 import sys
 import os
 import time
-import uuid
-from math import radians, cos, sin, asin, sqrt
 import json
+import ast
 
 products = {}
 idCount = 100
@@ -18,6 +17,8 @@ HOST = ''
 PORT = 50003
 serverValue = 3
 
+newProducts = {}
+
 server1Host = '127.0.0.1'
 server1Port = 50001
 server2Host = '127.0.0.1'
@@ -25,64 +26,61 @@ server2Port = 50002
 server4Host = '127.0.0.1'
 server4Port = 50004
 
-fictionalValue = 5
-server1Values = [0, 0, 0, 0]
-server2Values = [0, 0, 0, 0]
-server3Values = [0, 0, 3, 0]
-server4Values = [0, 0, 0, 0]
+serversQuantity = 4
+testServers = {}
 
 def Product(productCode = 0, productName = '', productValue = 0, productAvailability = 0):
 	return {'code': productCode, 'name': productName, 'value': productValue, 'availability': productAvailability}
 
 def getNewProduct(connection):
     try:
-        connection.send("SENDNEWPRODUCT");
-        serverNumber = connection.recv(8)
-        print("getting information from server" + serverNumber)
-        serverNumber = int(serverNumber)
+		connection.send("SENDNEWPRODUCT")
+		serverNumber = connection.recv(8)
+		print("getting information from server" + serverNumber)
+		serverNumber = int(serverNumber)
 
-        print '\nProduct:',
-        information = connection.recv(1024)
-        data_load = json.loads(json.JSONEncode(information))
-        print data_load
+		print '\nProduct:',
+		information = connection.recv(1024)
+		information = ast.literal_eval(json.loads(information))
+		print information
 
-        server3Values[serverNumber-1] = information
-        if serverNumber == 2:
-            time.sleep(5)
+		newProducts.update({serverNumber: information})
+		if serverNumber == 2:
+			time.sleep(5)
 
-            server1Socket.send("GETNUMBER")
-            returnMessage = server1Socket.recv(1024)
-            if (returnMessage == "SENDNUMBER"):
-                print("Connection started with 1")
-                sendNumber(server1Socket)
+			server1Socket.send("GETNUMBER")
+			returnMessage = server1Socket.recv(1024)
+			if (returnMessage == "SENDNUMBER"):
+				print("Connection started with 1")
+				sendNumber(server1Socket)
 
-            server2Socket.send("GETNUMBER")
-            returnMessage = server2Socket.recv(1024)
-            if (returnMessage == "SENDNUMBER"):
-                print("Connection started with 2")
-                sendNumber(server2Socket)
+			server2Socket.send("GETNUMBER")
+			returnMessage = server2Socket.recv(1024)
+			if (returnMessage == "SENDNUMBER"):
+				print("Connection started with 2")
+				sendNumber(server2Socket)
 
-            server4Socket.send("GETNUMBER")
-            returnMessage = server4Socket.recv(1024)
-            if (returnMessage == "SENDNUMBER"):
-                print("Connection started with 4")
-                sendNumber(server4Socket)
+			server4Socket.send("GETNUMBER")
+			returnMessage = server4Socket.recv(1024)
+			if (returnMessage == "SENDNUMBER"):
+				print("Connection started with 4")
+				sendNumber(server4Socket)
 
-        if serverNumber == 4:
-            time.sleep(5)
-            print server3Values
+		if serverNumber == 4:
+			time.sleep(5)
+			print server3Values
 
-            msg = server1Socket.recv(1024)
-            if (msg == "SENDSERVERVALUES"):
-                print("Connection started to send server values")
-                sendServerValues(server1Socket)
+			msg = server1Socket.recv(1024)
+			if (msg == "SENDSERVERVALUES"):
+				print("Connection started to send server values")
+				sendServerValues(server1Socket)
 
-        if serverNumber == 1:
-            time.sleep(30)
-            msg = connection.recv(1024)
-            if (msg == "SENDSERVERVALUES"):
-                print("Connection started to send server values")
-                sendServerValues(connection)
+		if serverNumber == 1:
+			time.sleep(30)
+			msg = connection.recv(1024)
+			if (msg == "SENDSERVERVALUES"):
+				print("Connection started to send server values")
+				sendServerValues(connection)
 
     except Exception as msg:
         connection.send("ERROR")
@@ -189,7 +187,7 @@ def connected(connection, client):
 			getNewProduct(connection)
 		elif (msg == "SENDSERVERVALUES"):
 			print("Connection started to send server values")
-			sendServerValues(connection)
+			sendServerProduct(connection)
 		elif (msg == "SENDNUMBER"):
 			print("Connection started with " + str(client))
 			sendNumber(connection)

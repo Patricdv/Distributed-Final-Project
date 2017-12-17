@@ -4,6 +4,7 @@ import sys
 import os
 import time
 import json
+import ast
 
 products = {}
 idCount = 100
@@ -15,6 +16,8 @@ server4Products = {}
 HOST = ''
 PORT = 50001
 serverValue = 1
+
+newProducts = {}
 
 # OTHER SERVERS AND HOSTS
 server2Host = '127.0.0.1'
@@ -171,10 +174,7 @@ def sendServerValues(connection):
         return
 
 def sendNewProduct(connection, newProduct):
-	data_string = json.dumps(newProduct) #data serialized
-	print type(data_string)
-	data_load = json.loads(data_string) #data serialized
-	print data_load
+	data_string = json.dumps(str(newProduct).replace("'",'"')) #data serialized
 	print "Sending server number"
 	connection.send(str(serverValue))
 
@@ -287,40 +287,16 @@ def listLocalProducts():
 def listGlobalProducts(serverId):
 	print '_____________________________'
 	print '| ID | Name | Price | Stock |'
-	for product in products:
-		print '| ',
-		print products[product]['code'],
-		print ' | ',
-		print products[product]['name'],
-		print ' | ',
-		print products[product]['value'],
-		print ' | ',
-		print products[product]['availability'],
-		print ' |'
+	if serverId == 1:
+		serverProducts = products
+	elif serverId == 2:
+		serverProducts = server2Products
+	elif serverId == 3:
+		serverProducts = server3Products
+	elif serverId == 4:
+		serverProducts = server4Products
 
-	for product in server2Products:
-		print '| ',
-		print products[product]['code'],
-		print ' | ',
-		print products[product]['name'],
-		print ' | ',
-		print products[product]['value'],
-		print ' | ',
-		print products[product]['availability'],
-		print ' |'
-
-	for product in server3Products:
-		print '| ',
-		print products[product]['code'],
-		print ' | ',
-		print products[product]['name'],
-		print ' | ',
-		print products[product]['value'],
-		print ' | ',
-		print products[product]['availability'],
-		print ' |'
-
-	for product in server4Products:
+	for product in serverProducts:
 		print '| ',
 		print products[product]['code'],
 		print ' | ',
@@ -336,31 +312,31 @@ def main():
 		menu()
 		option = int(raw_input('Option:'))
 		if option < 1 or option > 6:
-			print '\n\n\n Error on selecting option, try again:\n\n'
+			print '\n\nError on selecting option, try again:\n\n'
 			continue
 
 		if option == 1:
-			print '\n\n Let\'s create a new Product:'
+			print '\nLet\'s create a new Product:'
 			productId = int(raw_input('Please inform the product id to be changed:'))
 			updateProductValue(productId)
 
 		if option == 2:
-			print '\n\n'
+			print '\n'
 			productId = int(raw_input('Please inform the product id to be viewed:'))
 			showProduct(productId)
 
 		if option == 3:
-			print '\n\n Let\'s create a new Product:'
+			print '\nLet\'s create a new Product:'
 			createProduct()
 
 		if option == 4:
-			print '\n\n'
+			print '\n'
 			listLocalProducts()
 
 		if option == 5:
-			print '\n\n'
+			print '\n'
 			serverId = int(raw_input('Please inform from which server do you want to receive the products:'))
-			listLocalProducts(serverId)
+			listGlobalProducts(serverId)
 
 		if option == 6:
 			print 'Exiting from this server'

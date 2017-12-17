@@ -4,6 +4,7 @@ import sys
 import os
 import time
 import json
+import ast
 
 products = {}
 idCount = 100
@@ -15,6 +16,8 @@ server4Products = {}
 HOST = ''
 PORT = 50002
 serverValue = 2
+
+newProducts = {}
 
 # OTHER SERVERS AND HOSTS
 server1Host = '127.0.0.1'
@@ -39,36 +42,30 @@ def getNewProduct(connection):
 
 		print '\nProduct:',
 		information = connection.recv(1024)
-		data_load = json.loads(json.JSONEncode(information))
-		print data_load
+		information = ast.literal_eval(json.loads(information))
+		print information
 
-		server2Values[serverNumber-1] = information
+		newProducts.update({serverNumber: information})
 		if serverNumber == 1:
 			time.sleep(5)
 
-			server1Socket.send("GETNUMBER")
+			server1Socket.send("GETNEWPRODUCT")
 			returnMessage = server1Socket.recv(1024)
-			if (returnMessage == "SENDNUMBER"):
+			if (returnMessage == "SENDNEWPRODUCT"):
 				print("Connection started with 1")
 				sendNumber(server1Socket)
 
-			server3Socket.send("GETNUMBER")
+			server3Socket.send("GETNEWPRODUCT")
 			returnMessage = server3Socket.recv(1024)
-			if (returnMessage == "SENDNUMBER"):
+			if (returnMessage == "SENDNEWPRODUCT"):
 				print("Connection started with 3")
 				sendNumber(server3Socket)
 
-			server4Socket.send("GETNUMBER")
+			server4Socket.send("GETNEWPRODUCT")
 			returnMessage = server4Socket.recv(1024)
-			if (returnMessage == "SENDNUMBER"):
+			if (returnMessage == "SENDNEWPRODUCT"):
 				print("Connection started with 4")
 				sendNumber(server4Socket)
-
-			time.sleep(30)
-			msg = connection.recv(1024)
-			if (msg == "SENDSERVERVALUES"):
-				print("Connection started to send server values")
-				sendServerValues(connection)
 
 		if serverNumber == 4:
 			time.sleep(5)
@@ -132,18 +129,18 @@ def getNumber(connection):
         print("Error message: " + str(msg))
         return
 
-def sendServerValues(connection):
+def sendServerProduct(connection):
     try:
-        connection.send("GETVALUES");
-        print "Sending Server Values"
-        connection.send(str(serverValue))
+		connection.send("GETPRODUCT")
 
-        connection.send(str(server2Values[0]))
-        connection.send(str(server2Values[1]))
-        connection.send(str(server2Values[2]))
-        connection.send(str(server2Values[3]))
+		print "Sending server new product"
+		connection.send(str(serverValue))
 
-        print "Finish Sending Values"
+		time.sleep(1)
+
+		data_string = json.dumps(str(newProduct).replace("'",'"')) #data serialized
+		connection.send(data_string)
+		print "Finish Sending Product"
 
     except Exception as msg:
         connection.send("ERROR")
@@ -170,7 +167,7 @@ def connected(connection, client):
 			getNewProduct(connection)
 		elif (msg == "SENDSERVERVALUES"):
 			print("Connection started to send server values")
-			sendServerValues(connection)
+			sendServerProduct(connection)
 		elif (msg == "SENDNUMBER"):
 			print("Connection started with " + str(client))
 			sendNumber(connection)
