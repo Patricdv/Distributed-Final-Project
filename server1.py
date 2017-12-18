@@ -168,11 +168,9 @@ def sendServerValues(connection):
     try:
 		connection.send("GETVALUES")
 		print "Sending Server Values"
-		time.sleep(1)
 		connection.send(str(serverValue))
-
-		for value in server1Values:
-			connection.send(str(value))
+		time.sleep(1)
+		connection.send(newProduct[1])
 
     except Exception as msg:
         connection.send("ERROR")

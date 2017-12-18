@@ -41,87 +41,47 @@ def Product(productCode = 0, productName = '', productValue = 0, productAvailabi
 	return {'code': productCode, 'name': productName, 'value': productValue, 'availability': productAvailability}
 
 def doByzantineAgreement():
-    print "\nStarting Byzantine Agreement:"
-    print "Server Values:"
-    print server1Values
-    print server2Values
-    print server3Values
-    print server4Values
+	print "\nStarting Byzantine Agreement:"
+	print "Server Values:"
+	print serverValues
 
-    count = 0
-    percentage = 100/serversQuantity
-    for key in range(0, serversQuantity):
-        print "testing server: ",
-        print key
+	count = 0
+	percentage = 100/serversQuantity
 
-        testServers = {}
-        count = 0
-        testServers.update({server1Values[key]: percentage})
+	testServers = {}
+	testServers.update({serverValues[0]: percentage})
 
-        if server2Values[key] in testServers:
-            testServers[server2Values[key]] += percentage
-        else:
-            testServers.update({server2Values[key]: percentage})
+	if serverValues[1] in testServers:
+		testServers[serverValues[1]] += percentage
+	else:
+		testServers.update({serverValues[1]: percentage})
 
-        if server3Values[key] in testServers:
-            testServers[server3Values[key]] += percentage
-        else:
-            testServers.update({server3Values[key]: percentage})
+	if serverValues[2] in testServers:
+		testServers[serverValues[2]] += percentage
+	else:
+		testServers.update({serverValues[2]: percentage})
 
-        if server4Values[key] in testServers:
-            testServers[server4Values[key]] += percentage
-        else:
-            testServers.update({server4Values[key]: percentage})
+	if serverValues[3] in testServers:
+		testServers[serverValues[3]] += percentage
+	else:
+		testServers.update({serverValues[3]: percentage})
 
-        for x in testServers:
-            if testServers[x] >= 60:
-                count +=1
-                print "Server ",
-                print key+1,
-                print " isn't a traitor"
-                break
-
-        if count == 0:
-            print "This sith server ",
-            print key+1,
-            print " is a traitor"
+	for x in testServers:
+		if testServers[x] >= 60:
+			count += 1
+			print "The new product is ok!"
 
 def receiveServerValues(connection):
-    serverNumber = connection.recv(8)
-    serverNumber = int(serverNumber)
-
-    serverValues = ['', '', '', '']
-    serverValues[0] = connection.recv(1024)
-    serverValues[1] = connection.recv(1024)
-    serverValues[2] = connection.recv(1024)
-    serverValues[3] = connection.recv(1024)
-
-    print serverNumber
-
-    if serverNumber == 2:
-        server2Values[0] = int(serverValues[0])
-        server2Values[1] = int(serverValues[1])
-        server2Values[2] = int(serverValues[2])
-        server2Values[3] = int(serverValues[3])
-
-    if serverNumber == 3:
-        server3Values[0] = int(serverValues[0])
-        server3Values[1] = int(serverValues[1])
-        server3Values[2] = int(serverValues[2])
-        server3Values[3] = int(serverValues[3])
-
-    if serverNumber == 4:
-        server4Values[0] = int(serverValues[0])
-        server4Values[1] = int(serverValues[1])
-        server4Values[2] = int(serverValues[2])
-        server4Values[3] = int(serverValues[3])
+	serverNumber = int(connection.recv(8))
+	serverObject = connection.recv(1024)
+	serverValues[serverNumber - 1] = serverObject
 
 def getAllValues():
-    server2Socket.send("SENDSERVERVALUES")
-    returnMessage = server2Socket.recv(1024)
+    server1Socket.send("SENDSERVERVALUES")
+    returnMessage = server1Socket.recv(1024)
     if (returnMessage == "GETVALUES"):
         print("Connection started with 2")
-        receiveServerValues(server2Socket)
+        receiveServerValues(server1Socket)
 
     server3Socket.send("SENDSERVERVALUES")
     returnMessage = server3Socket.recv(1024)
@@ -160,10 +120,7 @@ def getNewProduct(connection):
 		serverValues[serverNumber - 1] = information
 
 		time.sleep(5)
-		msg = connection.recv(1024)
-		if (msg == "SENDSERVERVALUES"):
-			print("Connection started to send server values")
-			sendServerValues(connection)
+		getAllValues()
 
 	except Exception as msg:
 		connection.send("ERROR")

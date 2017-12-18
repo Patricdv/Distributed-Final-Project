@@ -62,7 +62,7 @@ def getNewProduct(connection):
 		information = ast.literal_eval(json.loads(information))
 		print information
 
-		newProduct[serverNumber - 1] = information
+		serverValue[serverNumber - 1] = information
 
     except Exception as msg:
         connection.send("ERROR")
@@ -72,16 +72,11 @@ def getNewProduct(connection):
 
 def sendServerValues(connection):
     try:
-        connection.send("GETVALUES");
-        print "Sending Server Values"
-        connection.send(str(serverValue))
-
-        connection.send(str(server3Values[0]))
-        connection.send(str(server3Values[1]))
-        connection.send(str(server3Values[2]))
-        connection.send(str(server3Values[3]))
-
-        print "Finish Sending Values"
+		connection.send("GETVALUES")
+		print "Sending Server Values"
+		connection.send(str(serverValue))
+		time.sleep(1)
+		connection.send(newProduct[1])
 
     except Exception as msg:
         connection.send("ERROR")
