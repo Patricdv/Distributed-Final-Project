@@ -17,7 +17,7 @@ HOST = ''
 PORT = 50001
 serverValue = 1
 
-newProducts = {}
+newProduct = {}
 
 # OTHER SERVERS AND HOSTS
 server2Host = '127.0.0.1'
@@ -26,6 +26,13 @@ server3Host = '127.0.0.1'
 server3Port = 50003
 server4Host = '127.0.0.1'
 server4Port = 50004
+
+serverValues = ['', '', '', '']
+
+#Clocks
+clockIterarion = 1
+localClock = 11
+globalClock = 0
 
 serversQuantity = 4
 testServers = {}
@@ -159,13 +166,13 @@ def getNumber(connection):
 
 def sendServerValues(connection):
     try:
-        connection.send("GETVALUES");
-        print "Sending Server Values"
-        time.sleep(1)
-        connection.send(str(serverValue))
+		connection.send("GETVALUES")
+		print "Sending Server Values"
+		time.sleep(1)
+		connection.send(str(serverValue))
 
-        for value in server1Values:
-            connection.send(str(value))
+		for value in server1Values:
+			connection.send(str(value))
 
     except Exception as msg:
         connection.send("ERROR")
@@ -175,10 +182,18 @@ def sendServerValues(connection):
 
 def sendNewProduct(connection, newProduct):
 	data_string = json.dumps(str(newProduct).replace("'",'"')) #data serialized
+	newProduct.update({serverValue: data_string})
 	print "Sending server number"
 	connection.send(str(serverValue))
 
-	time.sleep(1)
+	global localClock
+	connection.send(str(localClock))
+
+	global globalClock
+	globalClock = connection.recv(8)
+	globalClock = int(globalClock)
+	if localClock < globalClock:
+		localClock = globalClock
 
 	print "Sending server new product"
 	connection.send(data_string)
@@ -367,7 +382,7 @@ print("TCP started and already listening...")
 # Server accept connections until a keyboard interrupt
 # If there is a keyboard interrupt, release the port
 
-time.sleep(20)
+time.sleep(5)
 
 server2Socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 server3Socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -393,10 +408,11 @@ thread.start_new_thread(main, ())
 
 try:
     while True:
-        connection, client = tcp.accept()
+		localClock += clockIterarion
+		connection, client = tcp.accept()
 
-        # For every connect a new thread will be created
-        thread.start_new_thread(connected, tuple([connection, client]))
+		# For every connect a new thread will be created
+		thread.start_new_thread(connected, tuple([connection, client]))
 
 except KeyboardInterrupt:
     print("\n\n--- TCP connection ended ---")

@@ -12,12 +12,14 @@ server1Products = {}
 server2Products = {}
 server4Products = {}
 
+serverValues = ['', '', '', '']
+
 # SERVER HOST AND SERVER
 HOST = ''
 PORT = 50003
 serverValue = 3
 
-newProducts = {}
+newProduct = {}
 
 server1Host = '127.0.0.1'
 server1Port = 50001
@@ -25,6 +27,11 @@ server2Host = '127.0.0.1'
 server2Port = 50002
 server4Host = '127.0.0.1'
 server4Port = 50004
+
+#Clocks
+clockIterarion = 3
+localClock = 11
+globalClock = 0
 
 serversQuantity = 4
 testServers = {}
@@ -35,109 +42,27 @@ def Product(productCode = 0, productName = '', productValue = 0, productAvailabi
 def getNewProduct(connection):
     try:
 		connection.send("SENDNEWPRODUCT")
-		serverNumber = connection.recv(8)
+		serverNumber = connection.recv(1)
 		print("getting information from server" + serverNumber)
 		serverNumber = int(serverNumber)
 
+		global globalClock
+		global localClock
+		globalClock = connection.recv(2)
+		globalClock = int(globalClock)
+		if globalClock > (localClock + 1):
+			localClock = globalClock
+		else:
+			localClock += 1
+		connection.send(str(localClock))
+
 		print '\nProduct:',
 		information = connection.recv(1024)
+		newProduct.update({serverNumber: information})
 		information = ast.literal_eval(json.loads(information))
 		print information
 
-		newProducts.update({serverNumber: information})
-		if serverNumber == 2:
-			time.sleep(5)
-
-			server1Socket.send("GETNUMBER")
-			returnMessage = server1Socket.recv(1024)
-			if (returnMessage == "SENDNUMBER"):
-				print("Connection started with 1")
-				sendNumber(server1Socket)
-
-			server2Socket.send("GETNUMBER")
-			returnMessage = server2Socket.recv(1024)
-			if (returnMessage == "SENDNUMBER"):
-				print("Connection started with 2")
-				sendNumber(server2Socket)
-
-			server4Socket.send("GETNUMBER")
-			returnMessage = server4Socket.recv(1024)
-			if (returnMessage == "SENDNUMBER"):
-				print("Connection started with 4")
-				sendNumber(server4Socket)
-
-		if serverNumber == 4:
-			time.sleep(5)
-			print server3Values
-
-			msg = server1Socket.recv(1024)
-			if (msg == "SENDSERVERVALUES"):
-				print("Connection started to send server values")
-				sendServerValues(server1Socket)
-
-		if serverNumber == 1:
-			time.sleep(30)
-			msg = connection.recv(1024)
-			if (msg == "SENDSERVERVALUES"):
-				print("Connection started to send server values")
-				sendServerValues(connection)
-
-    except Exception as msg:
-        connection.send("ERROR")
-        #File Error.
-        print("Error message: " + str(msg))
-        return
-
-def getNumber(connection):
-    try:
-        connection.send("SENDNUMBER");
-        serverNumber = connection.recv(8)
-        print("getting information from server" + serverNumber)
-        serverNumber = int(serverNumber)
-
-        print '\nValue:',
-
-        information = connection.recv(8)
-        information = int(information)
-        print information
-
-        server3Values[serverNumber-1] = information
-        if serverNumber == 2:
-            time.sleep(5)
-
-            server1Socket.send("GETNUMBER")
-            returnMessage = server1Socket.recv(1024)
-            if (returnMessage == "SENDNUMBER"):
-                print("Connection started with 1")
-                sendNumber(server1Socket)
-
-            server2Socket.send("GETNUMBER")
-            returnMessage = server2Socket.recv(1024)
-            if (returnMessage == "SENDNUMBER"):
-                print("Connection started with 2")
-                sendNumber(server2Socket)
-
-            server4Socket.send("GETNUMBER")
-            returnMessage = server4Socket.recv(1024)
-            if (returnMessage == "SENDNUMBER"):
-                print("Connection started with 4")
-                sendNumber(server4Socket)
-
-        if serverNumber == 4:
-            time.sleep(5)
-            print server3Values
-
-            msg = server1Socket.recv(1024)
-            if (msg == "SENDSERVERVALUES"):
-                print("Connection started to send server values")
-                sendServerValues(server1Socket)
-
-        if serverNumber == 1:
-            time.sleep(30)
-            msg = connection.recv(1024)
-            if (msg == "SENDSERVERVALUES"):
-                print("Connection started to send server values")
-                sendServerValues(connection)
+		newProduct[serverNumber - 1] = information
 
     except Exception as msg:
         connection.send("ERROR")
@@ -295,7 +220,7 @@ print("TCP started and already listening...")
 # Server accept connections until a keyboard interrupt
 # If there is a keyboard interrupt, release the port
 
-time.sleep(20)
+time.sleep(5)
 
 server1Socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 server2Socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -321,10 +246,11 @@ except socket.error as sem:
 
 try:
     while True:
-        connection, client = tcp.accept()
+		localClock += clockIterarion
+		connection, client = tcp.accept()
 
-        # For every connect a new thread will be created
-        thread.start_new_thread(connected, tuple([connection, client]))
+		# For every connect a new thread will be created
+		thread.start_new_thread(connected, tuple([connection, client]))
 
 except KeyboardInterrupt:
     print("\n\n--- TCP connection ended ---")
