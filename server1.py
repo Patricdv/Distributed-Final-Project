@@ -334,24 +334,29 @@ def main():
 			print '\nLet\'s create a new Product:'
 			productId = int(raw_input('Please inform the product id to be changed:'))
 			updateProductValue(productId)
+			continue
 
 		if option == 2:
 			print '\n'
 			productId = int(raw_input('Please inform the product id to be viewed:'))
 			showProduct(productId)
+			continue
 
 		if option == 3:
 			print '\nLet\'s create a new Product:'
 			createProduct()
+			continue
 
 		if option == 4:
 			print '\n'
 			listLocalProducts()
+			continue
 
 		if option == 5:
 			print '\n'
 			serverId = int(raw_input('Please inform from which server do you want to receive the products:'))
 			listGlobalProducts(serverId)
+			continue
 
 		if option == 6:
 			print 'Exiting from this server'
