@@ -70,7 +70,7 @@ def getNewProduct(connection):
         print("Error message: " + str(msg))
         return
 
-def sendServerValues(connection):
+def sendServerProduct(connection):
     try:
 		connection.send("GETVALUES")
 		print "Sending Server Values"

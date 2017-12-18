@@ -164,7 +164,7 @@ def getNumber(connection):
         print("Error message: " + str(msg))
         return
 
-def sendServerValues(connection):
+def sendServerProduct(connection):
     try:
 		connection.send("GETVALUES")
 		print "Sending Server Values"
@@ -178,8 +178,8 @@ def sendServerValues(connection):
         print("Error message: " + str(msg))
         return
 
-def sendNewProduct(connection, newProduct):
-	data_string = json.dumps(str(newProduct).replace("'",'"')) #data serialized
+def sendNewProduct(connection, newServerProduct):
+	data_string = json.dumps(str(newServerProduct).replace("'",'"')) #data serialized
 	newProduct.update({serverValue: data_string})
 	print "Sending server number"
 	connection.send(str(serverValue))
@@ -212,7 +212,7 @@ def connected(connection, client):
 			getNumber(connection)
 		elif (msg == "SENDSERVERVALUES"):
 			print("Connection started to send server values")
-			sendServerValues(connection)
+			sendServerProduct(connection)
 		elif (msg == "SENDNUMBER"):
 			print("Connection started with " + str(client))
 			sendNumber(connection)

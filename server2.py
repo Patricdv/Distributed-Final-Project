@@ -80,7 +80,7 @@ def getAllValues():
     server1Socket.send("SENDSERVERVALUES")
     returnMessage = server1Socket.recv(1024)
     if (returnMessage == "GETVALUES"):
-        print("Connection started with 2")
+        print("Connection started with 1")
         receiveServerValues(server1Socket)
 
     server3Socket.send("SENDSERVERVALUES")
@@ -121,6 +121,7 @@ def getNewProduct(connection):
 
 		time.sleep(5)
 		getAllValues()
+		doByzantineAgreement()
 
 	except Exception as msg:
 		connection.send("ERROR")

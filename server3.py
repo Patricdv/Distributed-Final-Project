@@ -42,13 +42,13 @@ def Product(productCode = 0, productName = '', productValue = 0, productAvailabi
 def getNewProduct(connection):
     try:
 		connection.send("SENDNEWPRODUCT")
-		serverNumber = connection.recv(1)
+		serverNumber = connection.recv(8)
 		print("getting information from server" + serverNumber)
 		serverNumber = int(serverNumber)
 
 		global globalClock
 		global localClock
-		globalClock = connection.recv(2)
+		globalClock = connection.recv(8)
 		globalClock = int(globalClock)
 		if globalClock > (localClock + 1):
 			localClock = globalClock
@@ -62,7 +62,7 @@ def getNewProduct(connection):
 		information = ast.literal_eval(json.loads(information))
 		print information
 
-		serverValue[serverNumber - 1] = information
+		serverValues[serverNumber - 1] = information
 
     except Exception as msg:
         connection.send("ERROR")
@@ -70,7 +70,7 @@ def getNewProduct(connection):
         print("Error message: " + str(msg))
         return
 
-def sendServerValues(connection):
+def sendServerProduct(connection):
     try:
 		connection.send("GETVALUES")
 		print "Sending Server Values"
